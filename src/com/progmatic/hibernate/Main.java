@@ -7,28 +7,51 @@ import org.hibernate.cfg.Configuration;
 import org.hibernate.query.Query;
 import org.hibernate.service.ServiceRegistry;
 
-import java.util.List;
 import java.util.Properties;
+import java.util.Scanner;
 
 public class Main {
 
     private static SessionFactory sessionFactory;
 
     static void addPizza() {
-        Pizza p = new Pizza();
-        p.setName("Lisbinba");
-        p.setPrice(12000);
+        try (
+            Scanner sc = new Scanner(System.in);
+        ) {
+            Pizza1 p = new Pizza1();
 
-        SessionFactory sessionFactory = Main.getSessionFactory();
-        Session session = sessionFactory.getCurrentSession();
+            System.out.println("Add meg a pizza nevet: ");
+            String name = sc.nextLine();
+            p.setName("Lisbinba");
+            System.out.println("Add meg a pizza arat: ");
+            Integer price = sc.nextInt();
+            sc.nextLine();
+            p.setPrice(price);
 
-        session.beginTransaction();
-        session.persist(p);
+            SessionFactory sessionFactory = Main.getSessionFactory();
+            Session session = sessionFactory.getCurrentSession();
 
-        session.getTransaction().commit();
-        System.out.println("Pizza id = " + p.getId());
+            session.beginTransaction();
 
-        sessionFactory.close();
+            session.persist(p);
+
+//            session.clear();
+//            session.merge(p);
+//
+//            session.remove(p);
+//            session.persist(p);
+//
+//            Pizza a = session.find(Pizza.class, p.getId());
+
+            session.flush();
+
+            session.getTransaction().commit();
+            System.out.println("Pizza id = " + p.getId());
+        } finally {
+            if (sessionFactory!= null) {
+                sessionFactory.close();
+            }
+        }
     }
 
     static void getAllPizza() {
@@ -46,9 +69,15 @@ public class Main {
 //            System.out.println(p);
 //        }
 
+//        NativeQuery<Object> pizzas = session.createNativeQuery("SELECT * FROM pizza p", Object.class);
+//
+//        for (Object a: pizzas.list()) {
+//            System.out.println(a);
+//        }
+
 //        session.flush();
 
-//        Query<Pizza> q = session.createQuery("SELECT p FROM Pizza p", Pizza.class);
+        Query<Pizza> q = session.createQuery("SELECT p FROM Pizza p", Pizza.class);
 
 //        Query<String> q = session.createQuery("SELECT p.name FROM Pizza p", String.class);
 //        for (String p : q.list()) {
@@ -66,17 +95,17 @@ public class Main {
 //        q.setFirstResult(5);
 //        q.setMaxResults(10);
 
-//        for (Pizza p : q.list()) {
-//            System.out.println(p);
-//        }
+        for (Pizza p : q.list()) {
+            System.out.println(p);
+        }
 
-        Long priceSum = session.createQuery("select sum(p.price) from Pizza p ", Long.class)
-                .getSingleResult();
-        System.out.println(String.format("Osszes pizza ara: %d", priceSum));
-
-        String pizzasName = session.createQuery("select group_concat(p.name) from Pizza p ", String.class)
-                .getSingleResult();
-        System.out.printf("Osszes pizza neve: %s%n", pizzasName);
+//        Long priceSum = session.createQuery("select sum(p.price) from Pizza p ", Long.class)
+//                .getSingleResult();
+//        System.out.println(String.format("Osszes pizza ara: %d", priceSum));
+//
+//        String pizzasName = session.createQuery("select group_concat(p.name) from Pizza p ", String.class)
+//                .getSingleResult();
+//        System.out.printf("Osszes pizza neve: %s%n", pizzasName);
 
 
         session.getTransaction().commit();
@@ -103,7 +132,7 @@ public class Main {
             props.put("hibernate.show_sql", "true");
 
             configuration.setProperties(props);
-
+//            configuration.addClass(Pizza1.class);
             configuration.addAnnotatedClass(Pizza.class);
 
             ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
@@ -123,7 +152,7 @@ public class Main {
             Configuration configuration = new Configuration();
             configuration.configure("hibernate.cfg.xml");
 
-            configuration.addAnnotatedClass(Pizza.class);
+//            configuration.addAnnotatedClass(Pizza.class);
 
             ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
                     .applySettings(configuration.getProperties())
@@ -139,8 +168,8 @@ public class Main {
 
     private static SessionFactory getSessionFactory() {
         if (sessionFactory == null) {
-//            sessionFactory = buildSessionFactory();
-            sessionFactory = buildSessionFactoryByXml();
+            sessionFactory = buildSessionFactory();
+//            sessionFactory = buildSessionFactoryByXml();
         }
         return sessionFactory;
     }

@@ -18,9 +18,6 @@ public class Pizza {
     @Column(name = "par"/*, nullable=false, unique=true, length=11*/)
     private Integer price;
 
-    @Transient
-    private Long stat;
-
     public Long getId() {
         return id;
     }
